@@ -138,7 +138,7 @@ pip install -r requirements.txt
 ## Project Structure
 
 ```
-project-root/
+hybrid-orders-etl-pipeline/
 │
 ├── .gitignore
 ├── requirements.txt
