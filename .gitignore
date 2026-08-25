@@ -22,8 +22,7 @@ env/
 
 # Data & runtime directories (not tracked in git)
 data/
-reports/
-images/
+Exploration_result/
 
 # OS files
 .DS_Store

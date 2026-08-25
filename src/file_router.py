@@ -2,6 +2,8 @@ import sys
 from pathlib import Path
 from enum import Enum
 
+# Standardize fixed values and prevent inconsistent naming.
+
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from config.settings import SMALL_FILE_THRESHOLD_MB
@@ -16,7 +18,7 @@ def get_file_size_mb(file_path: str) -> float:
     """Computes the file size in megabytes."""
     path = Path(file_path)
     if not path.exists():
-        raise FileNotFoundError(f"File not found: {file_path}")
+        raise FileNotFoundError(f"File not found: {file_path}") # byte.
     size_bytes = path.stat().st_size
     return size_bytes / (1024 * 1024)
 
@@ -61,6 +63,8 @@ def choose_engine(file_path: str, threshold_mb: float = SMALL_FILE_THRESHOLD_MB)
 
 if __name__ == "__main__":
     # Quick standalone test for the Router
+    # instead of running the full pipeline, you can test the engine selection logic with a specific file by writing file path in the command line.
+    # python src/file_router.py --input path/to/your/file.csv
     import argparse
 
     parser = argparse.ArgumentParser(description="Test the engine-selection router.")

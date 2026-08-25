@@ -1,4 +1,4 @@
-import json
+import json # to handle items_json field
 import re
 import sys
 from datetime import datetime
@@ -39,7 +39,7 @@ def rule_arabic_numerals(field: str, value):
 
 
 # ===================== Rule 2: Currency code normalization =====================
-# Applies to the standalone "currency" column (e.g. "YER", "ريال", "لاير").
+
 _CURRENCY_CODE_ALIASES = {
     "لاير": "YER", "لاير يمني": "YER",
     "ريال": "YER", "ريال يمني": "YER",
@@ -94,7 +94,7 @@ def rule_thousands_separator(field: str, value):
 
 
 # ===================== Rule 4: Price written in words =====================
-# Only explicitly known Arabic word-numbers are converted — never guessed.
+
 _KNOWN_PRICE_WORDS = {
     "ألف": 1000, "الف": 1000,
     "ألفان": 2000, "الفان": 2000,
@@ -254,7 +254,7 @@ def rule_whitespace_synonyms(field: str, value):
 
 # ===================== Rule 9: items_json validity =====================
 def check_items_json(field: str, value):
-    
+    # check if json is valid and not empty, if not return the appropriate quarantine error code
     if value is None or str(value).strip() == "":
         return value, None, QEC.ITEMS_EMPTY
 

@@ -10,16 +10,13 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Project Structure](#project-structure)
 - [Architecture & Stages](#architecture--stages)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Project Structure](#project-structure)
+- [Setup](#setup)
 - [Usage](#usage)
-- [Data Quality Rules](#data-quality-rules)
-- [Engines](#engines)
-- [Testing](#testing)
-- [Notes & Troubleshooting](#notes--troubleshooting)
+- [How It Works](#how-it-works)
 
 ---
 
@@ -162,9 +159,21 @@ hybrid-orders-etl-pipeline/
     ├── create_small_sample.py
     ├── test_classification.py
     └── test_cleaning_rules.py
+└── reports
+      ├── results.json
+      ├── results.md
+└── screenshots
+      ├── batch_evidence
+        ├── evi1.png
+        ├── evi2.png
+      ├── spark_evidence
+        ├── evi1.png
+        ├── evi2.png
+        
+
 ```
 
-> **Note:** The `data/` and `reports/` directories are created locally at runtime and are not part of the repository.
+> **Note:** The `data/` directory is created locally at runtime and is not a part of the repository.
 
 ---
 
@@ -173,7 +182,6 @@ hybrid-orders-etl-pipeline/
 ```bash
 git clone <repo-url>
 cd project-root
-pip install -r requirements.txt
 ```
 
 ---
@@ -185,10 +193,9 @@ pip install -r requirements.txt
 Place your CSV file in the project directory (or reference it by path), then run:
 
 ```bash
-python -m src.main --input <your-file-name>.csv
+py -m src.main --input data/orders_sample.csv
 ```
 
-> Replace `<your-file-name>.csv` with the actual name of your source file.
 
 The router will automatically choose the best engine based on file size.
 
@@ -197,7 +204,7 @@ The router will automatically choose the best engine based on file size.
 To create a smaller CSV sample from a large source file for quick testing:
 
 ```bash
-python -m src.create_small_sample --input <your-large-file>.csv --output sample.csv --rows 100000
+py -m src.create_small_sample --input <your-large-file>.csv --output sample.csv --rows 100000
 ```
 
 > Replace `<your-large-file>.csv` with your actual source file name, and adjust `--rows` as needed.
@@ -205,7 +212,8 @@ python -m src.create_small_sample --input <your-large-file>.csv --output sample.
 Then run the pipeline on the sample:
 
 ```bash
-python -m src.main --input sample.csv
+py -m src.main --input data/sample.csv
+
 ```
 
 ---
@@ -263,11 +271,6 @@ Sets up MongoDB collections and indexes:
 ### `src/metrics.py`
 Tracks and stores run metrics (row counts, engine used, timing, throughput, error breakdowns) in `reports/results.json`.
 
----
-
-## License
-
-This is a student project — feel free to take it, modify it, and build on it.
 
 ---
 

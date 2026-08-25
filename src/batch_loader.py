@@ -40,10 +40,10 @@ def load_batch_python(input_path: str, id_run: str = None,
     print(f"Python Batch Loader - id_run = {id_run}")
     print(f"File: {file_source} | Batch size: {batch_size} | Encoding: {CSV_ENCODING}")
     print("=" * 60)
-
+# replace unreadable characters instead of raising an error.
     with open(input_file, "r", encoding=CSV_ENCODING, errors="replace", newline="") as f:
         reader = csv.DictReader(f)
-
+# metadata
         for row in reader:
             read_rows += 1
             record = build_raw_record(
@@ -58,6 +58,7 @@ def load_batch_python(input_path: str, id_run: str = None,
             if len(buffer) >= batch_size:
                 batch_number += 1
                 inserted, failed = _flush_batch(raw_collection, buffer, batch_number, start_time)
+                # update data statistics
                 loaded_raw += inserted
                 failed_rows += failed
                 buffer = []
@@ -93,7 +94,7 @@ def load_batch_python(input_path: str, id_run: str = None,
 
     return metrics
 
-
+# send the batch to MongoDB 
 def _flush_batch(collection, buffer: list, batch_number: int, start_time: float) -> tuple:
     
     batch_start = time.time()
