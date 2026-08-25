@@ -28,12 +28,6 @@ One row per full pipeline run (`python src/main.py --input ...`).
 | size_batch / input_partitions   | size_batch = 5000                | input_partitions = 8  |
 | Total wall time                 | 58.601s                          | 1,408.521s (~23.48 min) |
 
-*(Python Batch figures are from the first run after the database reset,
-`id_run = 3f986f87-b253-4bb2-a8bc-b4e44bfe7e09`. PySpark figures are from
-`id_run = 39176e8c-e436-4832-8616-6fbb3ba96f95`, run on `orders_sample_1gb.csv`
-(1022.21 MB). See the idempotency section below for the Python Batch
-second-run figures; PySpark has only been run once so far, so no
-idempotency figures exist for it yet.)*
 
 ### counts_case_error (Python Batch run)
 
@@ -48,9 +42,6 @@ idempotency figures exist for it yet.)*
 | ID_ORDER_MISSING               | 721   |
 | ITEMS_EMPTY                    | 677   |
 
-*(Identical across both Python Batch runs — same source file, no source
-data changes, so the same 100,000 rows trigger the exact same
-quality-rule errors every time, as expected.)*
 
 ### counts_case_error (PySpark run)
 
@@ -65,7 +56,7 @@ quality-rule errors every time, as expected.)*
 | ID_CUSTOMER_MISSING            | 34,042    |
 | PRICE_UNKNOWN                  | 17,129    |
 
-⚠️ **Note:** PySpark observation: All 2,429,665 records were quarantined, with approximately 99.3% flagged as JSON_ITEMS_CORRUPTED. This differs significantly from the Python Batch results and may indicate a CSV/JSON parsing or schema issue in the PySpark pipeline.
+⚠️ **Note:** PySpark observation: All 2,429,665 records were quarantined. This differs significantly from the Python Batch results and may indicate a CSV/JSON parsing or schema issue in the PySpark pipeline.
 
 ## Idempotency check (two consecutive runs, same file, unchanged source data)
 
@@ -75,11 +66,11 @@ quality-rule errors every time, as expected.)*
 | 2nd   | fd533aa9-36ef-47d5-9c4e-0af45aa24172    | 0               | 92,851          | 0                 | 0                      | 7,149                  | 0                         |
 
 **Result: idempotency confirmed for both layers (Python Batch).**
-When the same 100,000-row input was processed twice, the second run created no duplicate records. In orders_validated, inserted records dropped from 92,225 to 0, while 92,851 existing records were updated. In quarantine_orders, new inserts dropped from 7,149 to 0, while all 7,149 existing quarantine records were updated. The raw row count remained 100,000 and the consistency check remained True on both runs.
+> When the same 100,000-row input was processed twice, the second run created no duplicate records. In orders_validated, inserted records dropped from 92,225 to 0, while 92,851 existing records were updated. In quarantine_orders, new inserts dropped from 7,149 to 0, while all 7,149 existing quarantine records were updated. The raw row count remained 100,000 and the consistency check remained True on both runs.
 
 
 
 ## Notes
-> PySpark achieved approximately 2× higher raw-load throughput than Python Batch, while Python Batch achieved slightly higher ELT throughput in this run.
-> The PySpark run quarantined all records due to the unusually high JSON_ITEMS_CORRUPTED rate (~99.3%), so its ELT - --performance should be interpreted with caution until the CSV/JSON parsing behavior is verified.
-> The Python Batch idempotency test produced no duplicate records when the same input was processed twice.
+. PySpark achieved approximately 2× higher raw-load throughput than Python Batch, while Python Batch achieved slightly higher ELT throughput in this run.
+. The PySpark run quarantined all records due to the unusually high JSON_ITEMS_CORRUPTED rate (~99.3%), so its ELT - --performance should be interpreted with caution until the CSV/JSON parsing behavior is verified.
+. The Python Batch idempotency test produced no duplicate records when the same input was processed twice.
