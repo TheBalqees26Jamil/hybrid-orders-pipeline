@@ -62,11 +62,14 @@ def load_pyspark(input_path: str, id_run: str = None) -> dict:
     try:
         schema = _build_fixed_schema()
 
-        # Fixed schema used deliberately instead of inferSchema=True, per 6.4.
+        
         df = (
             spark.read
             .option("header", True)
             .option("encoding", "UTF-8")
+            .option("quote", "\"")
+            .option("escape", "\"")
+            .option("multiLine", "true")
             .schema(schema)
             .csv(str(input_file))
         )
@@ -77,16 +80,7 @@ def load_pyspark(input_path: str, id_run: str = None) -> dict:
         print(f"Input partitions : {input_partitions}")
         print(f"Rows read         : {read_rows}")
 
-        # NOTE: zipWithIndex() was replaced with monotonically_increasing_id().
-        # zipWithIndex() forces an RDD collect() round-trip through the Python
-        # worker process, which was timing out on this Windows setup
-        # ("Python worker failed to connect back"). monotonically_increasing_id()
-        # stays entirely inside Spark SQL (no Python worker involved), so it
-        # does not have this failure mode and is far cheaper at scale.
-        # Trade-off: values are unique and strictly increasing, but NOT a dense
-        # 1..N sequence tied to file order (there can be gaps between values).
-        # If you need a true sequential row number preserving file order,
-        # that requires a full single-partition sort (expensive) - not done here.
+       
         indexed_df = df.withColumn(
             "number_row_source", F.monotonically_increasing_id() + F.lit(1)
         )
