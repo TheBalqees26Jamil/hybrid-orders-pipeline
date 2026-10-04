@@ -21,7 +21,6 @@ def parse_args():
 
 
 def _build_merged_metrics(id_run: str, decision: dict, loader_metrics: dict, elt_metrics: dict) -> dict:
-    
     merged = {
         "id_run": id_run,
         "file_name": loader_metrics.get("file_name"),
@@ -47,7 +46,6 @@ def _build_merged_metrics(id_run: str, decision: dict, loader_metrics: dict, elt
         "quarantine_write_failed": elt_metrics.get("quarantine_write_failed"),
     }
 
-    
     if loader_metrics.get("used_engine") == "python_batch":
         merged["size_batch"] = loader_metrics.get("size_batch")
     else:
@@ -56,22 +54,20 @@ def _build_merged_metrics(id_run: str, decision: dict, loader_metrics: dict, elt
     return merged
 
 
-def main():
-    args = parse_args()
+def run_pipeline(input_path: str, close_client: bool = True) -> dict:
+    """The midterm pipeline as a callable (used by the CLI below AND by POST /ingest in src/api.py).
+    close_client=False when called from the long-running API so the shared Mongo client stays open."""
     id_run = str(uuid.uuid4())
     run_start = time.time()
 
-    spark_session_used = False
-
     try:
-        decision = file_router.choose_engine(args.input)
+        decision = file_router.choose_engine(input_path)
         engine = decision["engine"]
 
         if engine == "python_batch":
-            loader_metrics = batch_loader.load_batch_python(args.input, id_run=id_run)
+            loader_metrics = batch_loader.load_batch_python(input_path, id_run=id_run)
         else:
-            loader_metrics = spark_loader.load_pyspark(args.input, id_run=id_run)
-            spark_session_used = True  # spark_loader closes its own session internally
+            loader_metrics = spark_loader.load_pyspark(input_path, id_run=id_run)
 
         elt_metrics = elt_pipeline.run_elt(id_run)
 
@@ -84,7 +80,7 @@ def main():
         print("PIPELINE RUN SUMMARY")
         print("=" * 60)
         print(f"id_run              : {id_run}")
-        print(f"input file          : {args.input}")
+        print(f"input file          : {input_path}")
         print(f"engine used         : {merged_metrics.get('used_engine')}")
         print(f"read_rows           : {merged_metrics.get('read_rows')}")
         print(f"loaded_raw          : {merged_metrics.get('loaded_raw')}")
@@ -105,14 +101,17 @@ def main():
         print(f"total wall time     : {round(total_elapsed, 3)}s")
         print("=" * 60)
 
+        return {**merged_metrics, "total_wall_seconds": round(total_elapsed, 3)}
+
     finally:
-        # Always released, even on error. The Spark session (if used) is
-        # already closed inside spark_loader.load_pyspark()'s own
-        # try/finally, so there is nothing extra to do for it here -
-        # only the Mongo client, which may be reused across both the
-        # loader stage and elt_pipeline, is closed at this single,
-        # top-level call site.
-        mongo_setup.close_client()
+        # The Spark session (if used) is already closed inside spark_loader.load_pyspark().
+        if close_client:
+            mongo_setup.close_client()
+
+
+def main():
+    args = parse_args()
+    run_pipeline(args.input, close_client=True)
 
 
 if __name__ == "__main__":

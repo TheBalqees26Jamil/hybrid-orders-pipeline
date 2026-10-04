@@ -1,27 +1,3 @@
-"""
-make_sample.py (v2 - representative random sampling)
-------------------------------------------------------
-يسحب عينة من ملف CSV ضخم بشكل عشوائي موزّع على طول الملف كامل،
-بدل أخذ أول جزء منه فقط. هذا يضمن أن العينة تعكس نفس توزيع جودة
-البيانات (valid / corrected / quarantine) الموجود بالملف الأصلي.
-
-الطريقة:
-  1. يقرأ عينة صغيرة من بداية الملف لتقدير متوسط حجم السطر.
-  2. يحسب احتمال قبول كل سطر (keep_probability) بحيث يكون
-     الحجم الإجمالي للعينة قريب من الحجم المطلوب.
-  3. يمر على الملف كامل مرة واحدة (streaming)، ولكل سطر يقرر
-     عشوائياً هل يحتفظ فيه أو يتجاوزه - فتكون الأسطر المحتفظ بها
-     موزعة على طول الملف بأكمله وليس فقط في بدايته.
-
-الاستخدام:
-    python make_sample.py --input data\\orders_huge_mixed_quality.csv ^
-                           --output data\\orders_sample_1gb.csv ^
-                           --size_mb 1024 ^
-                           --seed 42
-
---seed اختياري: نفس الرقم يعطيك نفس العينة بالضبط في كل مرة (قابلة للتكرار).
-                لو ما حددتيه، العينة بترجع مختلفة شوي كل تشغيلة.
-"""
 
 import argparse
 import os
@@ -29,11 +5,11 @@ import random
 
 
 def _estimate_avg_line_bytes(path: str, sample_lines: int = 2000) -> float:
-    """يقرأ عدد محدود من الأسطر من بداية الملف فقط لتقدير متوسط حجم السطر بالبايت."""
+   
     total_bytes = 0
     count = 0
     with open(path, "r", encoding="utf-8", errors="replace") as f:
-        f.readline()  # تجاوز الـ header
+        f.readline()  
         for line in f:
             total_bytes += len(line.encode("utf-8"))
             count += 1
@@ -52,7 +28,7 @@ def make_sample(input_path: str, output_path: str, size_mb: float, seed: int = N
     if avg_line_bytes == 0:
         raise ValueError("تعذّرت قراءة أي بيانات من الملف المدخل.")
 
-    # احتمال قبول كل سطر بحيث يكون الحجم الكلي للعينة قريب من الهدف
+   
     keep_probability = min(1.0, target_bytes / input_size_bytes)
 
     print("=" * 60)
